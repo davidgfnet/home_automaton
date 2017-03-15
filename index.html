@@ -1,0 +1,204 @@
+<!doctype html>
+<html class="no-js">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Automaton Web Control Interface"/>
+    <meta name="generator" content="Bootstrap Template (http://bootstrap.tonystar.me/template)"/>
+    <link rel="icon" href="//cdn.rawgit.com/twbs/bootstrap/v3.3.5/docs/favicon.ico"/>
+    <title>Automaton WebUI</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css"/>
+    <!--link rel="stylesheet" href="custom.css"/-->
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Automaton WebUI</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Status</a></li>
+            <li><a href="/schedule">Schedule</a></li>
+            <li><a href="/overrides" target="_blank">Overrides</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <header class="jumbotron text-center" style="padding-top: 8rem">
+
+      {SECTION:status}
+      <div class="container">
+        <h2>System status</h2>
+        <p></p>
+
+        <div class="container">
+            <div class="row">
+                {LIST:device_status}
+                <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <i class="fa fa-plug"></i>
+                            <strong>{PLUG_NAME}</strong>
+                            <i class="fa fa-toggle-on"></i>
+                        </div>
+                    </div>
+                </div>
+                {/LIST}
+            </div>
+        </div>
+
+        <p></p>
+      </div>
+     {/SECTION}
+
+      {SECTION:schedule}
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <form action="/addevent" method="POST" id="addeventform">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Add event</h4>
+              </div>
+              <div class="modal-body">
+                    <p>Time: 
+                    <select name="hour">
+                        <option value="00">00</option>
+                        <option value="01">01</option>
+                        <option value="02">02</option>
+                        <option value="03">03</option>
+                        <option value="04">04</option>
+                        <option value="05">05</option>
+                        <option value="06">06</option>
+                        <option value="07">07</option>
+                        <option value="08">08</option>
+                        <option value="09">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                    </select>:
+                    <select name="minute">
+                        <option value="00">00</option>
+                        <option value="05">05</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                        <option value="35">35</option>
+                        <option value="40">40</option>
+                        <option value="45">45</option>
+                        <option value="50">50</option>
+                        <option value="55">55</option>
+                    </select>
+                    </p>
+                    <p>Every:
+                    <select name="repeat">
+                        <option value="0">Day</option>
+                        <option value="1">Sunday</option>
+                        <option value="2">Monday</option>
+                        <option value="3">Tuesday</option>
+                        <option value="4">Wednesday</option>
+                        <option value="5">Thursday</option>
+                        <option value="6">Friday</option>
+                        <option value="7">Saturday</option>
+                    </select>
+                    </p>
+                    <p>Device: 
+                    <select name="pluglist">
+                        {LIST:dev_list_picker}
+                        <option value="{PLUG_ID}">{PLUG_NAME}</option>
+                        {/LIST}
+                    </select>
+                    </p>
+                    <p>Duration:
+                    <select name="duration">
+                        <option value="15">15 min</option>
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
+                        <option value="60">1h</option>
+                        <option value="90">1.5h</option>
+                        <option value="120">2h</option>
+                        <option value="180">3h</option>
+                        <option value="240">4h</option>
+                        <option value="300">5h</option>
+                        <option value="360">6h</option>
+                    </select>
+                    </p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      <div class="container">
+        <h2>System schedule</h2>
+
+        <div class="container">
+            <div class="row">
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Start</th>
+                            <th>Stop</th>
+                            <th>Cycle</th>
+                            <th>Switch</th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {LIST:schedule_items}
+                        <tr>
+                            <td>{SCHED_START}</td>
+                            <td>{SCHED_END} ({SCHED_DUR_H})</td>
+                            <td>{SCHED_CYCLE}</td>
+                            <td>{SCHED_NAME}</td>
+                            <td><a href="/schedule/edit/123" class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></a></td>
+                        </tr>
+                        {/LIST}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+      </div>
+
+      <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+        <i class="fa fa-calendar"></i>&nbsp; Add scheduled event</a>
+      </button>
+     {/SECTION}
+
+    </header>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <!--script src="custom.js"></script-->
+  </body>
+</html>
+
