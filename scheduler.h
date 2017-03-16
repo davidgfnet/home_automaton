@@ -40,6 +40,12 @@ public:
 		eventCycle repeat;          // When to repeat the thing
 		int device;                 // Device affected (-1 means all of them)
 	};
+	struct sched_override {
+		time_t start;               // When the event starts!
+		unsigned duration_minutes;  // How long it lasts in minutes
+		bStatus state;              // Value: ON or OFF
+		int device;                 // Device affected (-1 means all of them)
+	};
 
 	Scheduler(std::vector<ButtonDevice> *buttons) : buttons(buttons) {
 		needs_push = true;          // The first time make sure to push status
@@ -55,6 +61,31 @@ public:
 		ev.repeat = (eventCycle)repeat;
 		ev.device = device;
 		items.push_back(ev);
+	}
+
+	void editEvent(unsigned idx, int device, unsigned hour, unsigned minute, unsigned duration, unsigned repeat) {
+		if (idx < 0 || idx >= items.size()) return;
+
+		items[idx].start.hour = hour;
+		items[idx].start.minute = minute;
+		items[idx].duration_minutes = duration;
+		items[idx].state = buttonON;
+		items[idx].repeat = (eventCycle)repeat;
+		items[idx].device = device;
+	}
+
+	void addOverride(int device, unsigned offset, unsigned duration, unsigned status) {
+		sched_override ov;
+		ov.start = time(0) + offset * 60;
+		ov.duration_minutes = duration;
+		ov.device = device;
+		ov.state = status ? buttonON : buttonOFF;
+		overrides.push_back(ov);
+	}
+
+	void delOverride(unsigned idx) {
+		if (idx < overrides.size())
+			overrides.erase(overrides.begin() + idx);
 	}
 
 	void readSched(std::string file) {
@@ -73,6 +104,18 @@ public:
 				items.push_back(ev);
 			}
 		}
+		entries = schedcfg["schedoverr"];
+		for (const auto entry: entries) {
+			auto fields = split(entry, ',');
+			if (fields.size() == 4) {
+				sched_override ov;
+				ov.start = atoi(fields[0].c_str());
+				ov.duration_minutes = atoi(fields[1].c_str());
+				ov.state = atoi(fields[2].c_str()) ? buttonON : buttonOFF;
+				ov.device = atoi(fields[3].c_str());
+				overrides.push_back(ov);
+			}
+		}
 	}
 
 	void writeSched(std::string file) {
@@ -84,6 +127,13 @@ public:
 			outfile << ev.duration_minutes << ",";
 			outfile << (unsigned)ev.repeat << ",";
 			outfile << ev.device << std::endl;
+		}
+		for (const auto ov: overrides) {
+			outfile << "schedoverr=";
+			outfile << ov.start << ",";
+			outfile << ov.duration_minutes << ",";
+			outfile << ov.state << ",";
+			outfile << ov.device << std::endl;
 		}
 	}
 	
@@ -117,6 +167,16 @@ public:
 			}
 		}
 
+		// Overrides!
+		for (const auto ov: overrides) {
+			if (now > ov.start && now < ov.start + ov.duration_minutes * 60) {
+				if (ov.device < 0)
+					fstate = std::vector<bStatus>(buttons->size(), ov.state);
+				else
+					fstate[ov.device] = ov.state;
+			}
+		}
+
 		// Update buttons
 		std::vector<bool> updated(buttons->size(), false);
 		for (unsigned i = 0; i < buttons->size(); i++) {
@@ -140,6 +200,7 @@ public:
 
 	// Schedule stuff
 	std::vector <sched_event> items;
+	std::vector <sched_override> overrides;
 
 	bool checkOverlap(uint32_t tdelta, unsigned dow, const sched_event &ev) {
 		uint32_t tstart = (((dow * 24 + ev.start.hour) * 60) + ev.start.minute) * 60;

@@ -11,6 +11,17 @@ for ESP8266, awesome stuff, check it out at bitbucket.org/xoseperez/espurna.
 It should be compatible though with any MQTT controlable device, drop me an
 issue if you cannot make it work.
 
+Dependencies
+------------
+
+This project depends on my MQTT client (listed as submodule cause it's a very
+simple code) and the C++ http server that can be found in my repo at
+davidgfnet/cpp-http-server which I use for many projects. You will need to
+checkout, build and install the later. It's a bit of a pain cause it depends
+on gnutls and gcrypt even if SSL is disabled (will fix that at some point I
+guess!). No more dependencies are needed really for now, which might change
+in the future though.
+
 How it works
 ------------
 

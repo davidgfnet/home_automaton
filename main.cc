@@ -28,6 +28,11 @@ void sig_handler(int signo) {
 }
 
 int main(int argc, char **argv) {
+	if (argc != 3) {
+		std::cerr << "Usage: " << argv[0] << " file.cfg data.sav" << std::endl;
+		exit(1);
+	}
+
 	// Load config file
 	auto cfg_map = parsefile(argv[1]);
 	vector<ButtonDevice> buttons = ButtonDevice::parseCfg(cfg_map["device"]);
@@ -125,7 +130,7 @@ int main(int argc, char **argv) {
 		// Work schedule! Push any changes
 		auto topush = sched.process();
 		for (const auto b: topush)
-			client.publish(buttons[b].relay_path, buttons[b].status == buttonON ? "1" : "0", 0);
+			client.publish(buttons[b].relay_path, buttons[b].status == buttonON ? "1" : "0", true);
 
 		// Process any output data
 		string tosend = client.getOutputBuffer(16*1024);

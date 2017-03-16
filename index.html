@@ -10,7 +10,69 @@
     <title>Automaton WebUI</title>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css"/>
-    <!--link rel="stylesheet" href="custom.css"/-->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <style type="text/css">
+        .table th {
+           text-align: center;   
+        }
+    </style>
+    <script type="text/javascript">
+       var schedule = [
+          {LIST:schedule_items}
+          {
+             hour: {SCHED_START_HOUR},
+             minute: {SCHED_START_MINUTE},
+             repeat: {SCHED_CYCLEID},
+             pluglist: {SCHED_DEVID},
+             duration: {SCHED_DUR_MIN},
+          },
+          {/LIST}
+      ];
+
+      function editEvent(id) {
+          $("#form-hour").val(schedule[id].hour);
+          $("#form-minute").val(schedule[id].minute);
+          $("#form-repeat").val(schedule[id].repeat);
+          $("#form-pluglist").val(schedule[id].pluglist);
+          $("#form-duration").val(schedule[id].duration);
+          $("#form-editid").val(id);
+
+          $('#modalEvent').modal('show');
+      }
+
+      function addEvent(id) {
+          $("#form-hour").val("0");
+          $("#form-minute").val("0");
+          $("#form-repeat").val("0");
+          $("#form-pluglist").val("-1");
+          $("#form-duration").val("60");
+          $("#form-editid").val("");
+
+          $('#modalEvent').modal('show');
+      }
+
+      function addOverride(id) {
+          $("#form-pluglist").val(id);
+
+          $('#modalDevPoke').modal('show');
+      }
+
+      $(document).ready(function() {
+        $(".editbutton").click(function(elem){
+          editEvent($(this).attr("data-editid"));
+        });
+
+        $(".addevent").click(function(elem){
+          addEvent();
+        });
+
+        $(".devicebutton").click(function(elem){
+          addOverride($(this).attr("data-plugid"));
+        });
+      });
+    </script>
   </head>
   <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -27,7 +89,7 @@
           <ul class="nav navbar-nav">
             <li><a href="/">Status</a></li>
             <li><a href="/schedule">Schedule</a></li>
-            <li><a href="/overrides" target="_blank">Overrides</a></li>
+            <li><a href="/overrides">Overrides</a></li>
           </ul>
         </div>
       </div>
@@ -35,6 +97,63 @@
     <header class="jumbotron text-center" style="padding-top: 8rem">
 
       {SECTION:status}
+        <div class="modal fade" id="modalDevPoke" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <form action="/addoverride" method="POST" id="addoverride">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Add override</h4>
+              </div>
+              <div class="modal-body">
+                    <p>Starting in 
+                    <select name="offset" id="form-offset">
+                        <option value="0">Now</option>
+                        <option value="5">5m</option>
+                        <option value="15">15m</option>
+                        <option value="30">30m</option>
+                        <option value="45">45m</option>
+                        <option value="60">1h</option>
+                        <option value="90">1.5h</option>
+                        <option value="120">2h</option>
+                        <option value="180">3h</option>
+                        <option value="240">4h</option>
+                        <option value="720">12h</option>
+                        <option value="1440">24h</option>
+                        <option value="2880">48h</option>
+                    </select>
+                    </p>
+                    <p>Duration:
+                    <select name="duration" id="form-duration">
+                        <option value="15">15 min</option>
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
+                        <option value="60">1h</option>
+                        <option value="90">1.5h</option>
+                        <option value="120">2h</option>
+                        <option value="180">3h</option>
+                        <option value="240">4h</option>
+                        <option value="300">5h</option>
+                        <option value="360">6h</option>
+                    </select>
+                    </p>
+                    <p>State:
+                    <select name="status" id="form-status">
+                        <option value="1">ON</option>
+                        <option value="0">OFF</option>
+                    </select>
+                    </p>
+                    <input type="hidden" name="pluglist" id="form-pluglist" value="">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
       <div class="container">
         <h2>System status</h2>
         <p></p>
@@ -42,12 +161,12 @@
         <div class="container">
             <div class="row">
                 {LIST:device_status}
-                <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 devicebutton" data-plugid="{PLUG_ID}">
                     <div class="panel panel-primary">
                         <div class="panel-heading">
                             <i class="fa fa-plug"></i>
                             <strong>{PLUG_NAME}</strong>
-                            <i class="fa fa-toggle-on"></i>
+                            <i class="fa fa-toggle-{PLUG_STATE}"></i>
                         </div>
                     </div>
                 </div>
@@ -60,7 +179,7 @@
      {/SECTION}
 
       {SECTION:schedule}
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal fade" id="modalEvent" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <form action="/addevent" method="POST" id="addeventform">
@@ -70,17 +189,17 @@
               </div>
               <div class="modal-body">
                     <p>Time: 
-                    <select name="hour">
-                        <option value="00">00</option>
-                        <option value="01">01</option>
-                        <option value="02">02</option>
-                        <option value="03">03</option>
-                        <option value="04">04</option>
-                        <option value="05">05</option>
-                        <option value="06">06</option>
-                        <option value="07">07</option>
-                        <option value="08">08</option>
-                        <option value="09">09</option>
+                    <select name="hour" id="form-hour">
+                        <option value="0">00</option>
+                        <option value="1">01</option>
+                        <option value="2">02</option>
+                        <option value="3">03</option>
+                        <option value="4">04</option>
+                        <option value="5">05</option>
+                        <option value="6">06</option>
+                        <option value="7">07</option>
+                        <option value="8">08</option>
+                        <option value="9">09</option>
                         <option value="10">10</option>
                         <option value="11">11</option>
                         <option value="12">12</option>
@@ -96,9 +215,9 @@
                         <option value="22">22</option>
                         <option value="23">23</option>
                     </select>:
-                    <select name="minute">
-                        <option value="00">00</option>
-                        <option value="05">05</option>
+                    <select name="minute" id="form-minute">
+                        <option value="0">00</option>
+                        <option value="5">05</option>
                         <option value="10">10</option>
                         <option value="15">15</option>
                         <option value="20">20</option>
@@ -112,7 +231,7 @@
                     </select>
                     </p>
                     <p>Every:
-                    <select name="repeat">
+                    <select name="repeat" id="form-repeat">
                         <option value="0">Day</option>
                         <option value="1">Sunday</option>
                         <option value="2">Monday</option>
@@ -124,14 +243,14 @@
                     </select>
                     </p>
                     <p>Device: 
-                    <select name="pluglist">
+                    <select name="pluglist" id="form-pluglist">
                         {LIST:dev_list_picker}
                         <option value="{PLUG_ID}">{PLUG_NAME}</option>
                         {/LIST}
                     </select>
                     </p>
                     <p>Duration:
-                    <select name="duration">
+                    <select name="duration" id="form-duration">
                         <option value="15">15 min</option>
                         <option value="30">30 min</option>
                         <option value="45">45 min</option>
@@ -144,6 +263,7 @@
                         <option value="360">6h</option>
                     </select>
                     </p>
+                    <input type="hidden" name="editid" id="form-editid" value="">
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -176,8 +296,8 @@
                             <td>{SCHED_START}</td>
                             <td>{SCHED_END} ({SCHED_DUR_H})</td>
                             <td>{SCHED_CYCLE}</td>
-                            <td>{SCHED_NAME}</td>
-                            <td><a href="/schedule/edit/123" class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></a></td>
+                            <td>{SCHED_DEVNAME}</td>
+                            <td><button data-editid="{SCHED_ID}" class="btn btn-primary btn-xs editbutton"><i class="fa fa-pencil"></i></button></td>
                         </tr>
                         {/LIST}
                     </tbody>
@@ -188,15 +308,49 @@
 
       </div>
 
-      <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+      <button type="button" class="btn btn-primary btn-lg addevent">
         <i class="fa fa-calendar"></i>&nbsp; Add scheduled event</a>
       </button>
      {/SECTION}
 
-    </header>
 
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      {SECTION:overrides}
+      <div class="container">
+        <h2>Overrides schedule</h2>
+
+        <div class="container">
+            <div class="row">
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Start</th>
+                            <th>Stop</th>
+                            <th>Action</th>
+                            <th>Switch</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {LIST:override_items}
+                        <tr>
+                            <td>{OVERRIDE_START}</td>
+                            <td>{OVERRIDE_END} ({OVERRIDE_DUR_H})</td>
+                            <td>{OVERRIDE_STATE}</td>
+                            <td>{OVERRIDE_DEVNAME}</td>
+                            <td><a href="/deloverride?id={OVERRIDE_ID}" class="btn btn-primary btn-xs"><i class="fa fa-trash"></i></a></td>
+                        </tr>
+                        {/LIST}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+      </div>
+     {/SECTION}
+
+    </header>
 
     <!--script src="custom.js"></script-->
   </body>

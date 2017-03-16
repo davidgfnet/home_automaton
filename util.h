@@ -2,6 +2,8 @@
 #ifndef __UTIL__H__
 #define __UTIL__H__
 
+#include <iomanip>
+
 static std::string trim(std::string line) {
 	while (line.size() && (line[0] == ' ' || line[0] == '\t'))
 		line = line.substr(1);
@@ -16,11 +18,18 @@ static std::string fmtTime(unsigned hour, unsigned minute) {
 	return h + ":" + m;
 }
 
+static std::string fmtDateTime(std::time_t t) {
+	std::tm tm = *std::localtime(&t);
+	std::stringstream ss;
+	ss << std::put_time(&tm, "%d %b %H:%M");
+	return ss.str();
+}
+
 static std::string fmtDuration(unsigned d) {
 	if (d >= 60) {
 		unsigned h = d / 60;
 		unsigned m = d % 60;
-		return std::to_string(h) + "h" + std::to_string(m) + "m";
+		return std::to_string(h) + "h" + (m > 0 ? std::to_string(m) + "m" : "");
 	}
 	return std::to_string(d) + "m";
 }
@@ -30,7 +39,7 @@ static const std::vector<std::string> split(std::string s, char c) {
 
 	auto pos = s.find(c);
 	while (pos != std::string::npos) {
-		ret.push_back(s.substr(pos));
+		ret.push_back(s.substr(0, pos));
 		s = s.substr(pos+1);
 		pos = s.find(c);
 	}
