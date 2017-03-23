@@ -12,7 +12,8 @@ enum eventCycle {
 	repWeeklyWednesday,
 	repWeeklyThursday,
 	repWeeklyFriday,
-	repWeeklySaturday
+	repWeeklySaturday,
+	repEnd
 };
 
 const std::vector <std::string> cycleStr = {
@@ -53,6 +54,7 @@ public:
 	}
 
 	void addEvents(int device, unsigned hour, unsigned minute, unsigned duration, unsigned repeat) {
+		if (repeat >= repEnd || duration > 7*24*60) return;
 		sched_event ev;
 		ev.start.hour = hour;
 		ev.start.minute = minute;
@@ -72,6 +74,11 @@ public:
 		items[idx].state = buttonON;
 		items[idx].repeat = (eventCycle)repeat;
 		items[idx].device = device;
+	}
+
+	void delEvent(unsigned idx) {
+		if (idx < items.size())
+			items.erase(items.begin() + idx);
 	}
 
 	void addOverride(int device, unsigned offset, unsigned duration, unsigned status) {
@@ -205,6 +212,15 @@ public:
 	bool checkOverlap(uint32_t tdelta, unsigned dow, const sched_event &ev) {
 		uint32_t tstart = (((dow * 24 + ev.start.hour) * 60) + ev.start.minute) * 60;
 		uint32_t tend   = tstart + ev.duration_minutes * 60;
+		// If the event finishes after the week is over, do a double check
+		const unsigned wsecs = 7*24*60*60;
+		if (tend > wsecs) {
+			// By definition tstart2 will be < 0, thus tdelta > 0, check is always true
+			int tend2 = tend - wsecs;
+			if (tdelta < tend2)
+				return true;  // Carry over from an event last week :)
+		}
+
 		return (tdelta >= tstart && tdelta < tend);
 	}
 };

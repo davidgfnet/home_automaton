@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
 	signal(SIGINT, sig_handler);
 
 	// Create MQTT connection and start looping for events
+	time_t lastw = 0;
 	int sockfd = -1;
 	AsyncMQTTClient client("");
 	while (!finish) {
@@ -142,6 +143,12 @@ int main(int argc, char **argv) {
 			close(sockfd); sockfd = -1;
 		}
 		globalmutex.unlock();
+
+		// Write config every hour or so not to lose it if we crash
+		if (time(0) > lastw + 6*3600) {
+			sched.writeSched(argv[2]);
+			lastw = time(0);
+		}
 	}
 
 	// Shutdown!

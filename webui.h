@@ -45,6 +45,8 @@ protected:
 			return addEvent(req);
 		else if (req.url == "/addoverride")
 			return addOverride(req);
+		else if (req.url == "/delsched")
+			return delEvent(req);
 		else if (req.url == "/deloverride")
 			return delOverride(req);
 
@@ -83,6 +85,14 @@ protected:
 			                 atoi(req.params["duration"].c_str()),
 			                 atoi(req.params["repeat"].c_str()));
 		}
+		globalmutex.unlock();
+
+		// Just render schedule page again
+		return returnSection(req, "schedule");
+	}
+	bool delEvent(rest_request& req) {
+		globalmutex.lock();
+		sched->delEvent(atoi(req.params["id"].c_str()));
 		globalmutex.unlock();
 
 		// Just render schedule page again
