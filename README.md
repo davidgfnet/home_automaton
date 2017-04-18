@@ -56,3 +56,13 @@ PWM to control a bit the intensity of the heating, but it should use a pretty
 big period for it (in the order of minutes), and still it might kill your
 relay.
 
+Screenshots
+-----------
+
+![Main page/panel](docs/main.png)
+
+![Override creation](docs/override.png)
+
+![Schedule page](docs/sched.png)
+
+
